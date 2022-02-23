@@ -1,0 +1,463 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree",
+        "constructInfo": {
+          "fqn": "constructs.Construct",
+          "version": "10.0.52"
+        }
+      },
+      "LambdaDestinationDlqStack": {
+        "id": "LambdaDestinationDlqStack",
+        "path": "LambdaDestinationDlqStack",
+        "children": {
+          "topic": {
+            "id": "topic",
+            "path": "LambdaDestinationDlqStack/topic",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "LambdaDestinationDlqStack/topic/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::SNS::Topic",
+                  "aws:cdk:cloudformation:props": {
+                    "displayName": "topic",
+                    "topicName": "lambda_topic"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_sns.CfnTopic",
+                  "version": "2.8.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_sns.Topic",
+              "version": "2.8.0"
+            }
+          },
+          "lambda-on-success_destination": {
+            "id": "lambda-on-success_destination",
+            "path": "LambdaDestinationDlqStack/lambda-on-success_destination",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "LambdaDestinationDlqStack/lambda-on-success_destination/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::SQS::Queue",
+                  "aws:cdk:cloudformation:props": {
+                    "messageRetentionPeriod": 3600,
+                    "visibilityTimeout": 20
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_sqs.CfnQueue",
+                  "version": "2.8.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_sqs.Queue",
+              "version": "2.8.0"
+            }
+          },
+          "lambda-on-failure-destination": {
+            "id": "lambda-on-failure-destination",
+            "path": "LambdaDestinationDlqStack/lambda-on-failure-destination",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "LambdaDestinationDlqStack/lambda-on-failure-destination/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::SQS::Queue",
+                  "aws:cdk:cloudformation:props": {
+                    "messageRetentionPeriod": 3600,
+                    "visibilityTimeout": 20
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_sqs.CfnQueue",
+                  "version": "2.8.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_sqs.Queue",
+              "version": "2.8.0"
+            }
+          },
+          "lambda": {
+            "id": "lambda",
+            "path": "LambdaDestinationDlqStack/lambda",
+            "children": {
+              "ServiceRole": {
+                "id": "ServiceRole",
+                "path": "LambdaDestinationDlqStack/lambda/ServiceRole",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "LambdaDestinationDlqStack/lambda/ServiceRole/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                      "aws:cdk:cloudformation:props": {
+                        "assumeRolePolicyDocument": {
+                          "Statement": [
+                            {
+                              "Action": "sts:AssumeRole",
+                              "Effect": "Allow",
+                              "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                              }
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        },
+                        "managedPolicyArns": [
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                      "version": "2.8.0"
+                    }
+                  },
+                  "DefaultPolicy": {
+                    "id": "DefaultPolicy",
+                    "path": "LambdaDestinationDlqStack/lambda/ServiceRole/DefaultPolicy",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "LambdaDestinationDlqStack/lambda/ServiceRole/DefaultPolicy/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                          "aws:cdk:cloudformation:props": {
+                            "policyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": "sqs:SendMessage",
+                                  "Effect": "Allow",
+                                  "Resource": {
+                                    "Fn::GetAtt": [
+                                      "lambdaDeadLetterQueue3ED8554D",
+                                      "Arn"
+                                    ]
+                                  }
+                                },
+                                {
+                                  "Action": [
+                                    "sqs:SendMessage",
+                                    "sqs:GetQueueAttributes",
+                                    "sqs:GetQueueUrl"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Resource": {
+                                    "Fn::GetAtt": [
+                                      "lambdaonfailuredestinationE2A1BD14",
+                                      "Arn"
+                                    ]
+                                  }
+                                },
+                                {
+                                  "Action": [
+                                    "sqs:SendMessage",
+                                    "sqs:GetQueueAttributes",
+                                    "sqs:GetQueueUrl"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Resource": {
+                                    "Fn::GetAtt": [
+                                      "lambdaonsuccessdestination8ACC02E2",
+                                      "Arn"
+                                    ]
+                                  }
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "policyName": "lambdaServiceRoleDefaultPolicyBF6FA5E7",
+                            "roles": [
+                              {
+                                "Ref": "lambdaServiceRole494E4CA6"
+                              }
+                            ]
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                          "version": "2.8.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.Policy",
+                      "version": "2.8.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.Role",
+                  "version": "2.8.0"
+                }
+              },
+              "Code": {
+                "id": "Code",
+                "path": "LambdaDestinationDlqStack/lambda/Code",
+                "children": {
+                  "Stage": {
+                    "id": "Stage",
+                    "path": "LambdaDestinationDlqStack/lambda/Code/Stage",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.AssetStaging",
+                      "version": "2.8.0"
+                    }
+                  },
+                  "AssetBucket": {
+                    "id": "AssetBucket",
+                    "path": "LambdaDestinationDlqStack/lambda/Code/AssetBucket",
+                    "children": {
+                      "Notifications": {
+                        "id": "Notifications",
+                        "path": "LambdaDestinationDlqStack/lambda/Code/AssetBucket/Notifications",
+                        "constructInfo": {
+                          "fqn": "constructs.Construct",
+                          "version": "10.0.52"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                      "version": "2.8.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                  "version": "2.8.0"
+                }
+              },
+              "DeadLetterQueue": {
+                "id": "DeadLetterQueue",
+                "path": "LambdaDestinationDlqStack/lambda/DeadLetterQueue",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "LambdaDestinationDlqStack/lambda/DeadLetterQueue/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::SQS::Queue",
+                      "aws:cdk:cloudformation:props": {
+                        "messageRetentionPeriod": 1209600
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_sqs.CfnQueue",
+                      "version": "2.8.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_sqs.Queue",
+                  "version": "2.8.0"
+                }
+              },
+              "Resource": {
+                "id": "Resource",
+                "path": "LambdaDestinationDlqStack/lambda/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                  "aws:cdk:cloudformation:props": {
+                    "code": {
+                      "s3Bucket": {
+                        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+                      },
+                      "s3Key": "4c0307d9a17eb324b286579f877cf37f7b1b42fbda65bfba7a5ee7676c370a7b.zip"
+                    },
+                    "role": {
+                      "Fn::GetAtt": [
+                        "lambdaServiceRole494E4CA6",
+                        "Arn"
+                      ]
+                    },
+                    "deadLetterConfig": {
+                      "targetArn": {
+                        "Fn::GetAtt": [
+                          "lambdaDeadLetterQueue3ED8554D",
+                          "Arn"
+                        ]
+                      }
+                    },
+                    "functionName": "dlq_lambda",
+                    "handler": "lambda.handler",
+                    "runtime": "python3.9",
+                    "timeout": 15
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                  "version": "2.8.0"
+                }
+              },
+              "EventInvokeConfig": {
+                "id": "EventInvokeConfig",
+                "path": "LambdaDestinationDlqStack/lambda/EventInvokeConfig",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "LambdaDestinationDlqStack/lambda/EventInvokeConfig/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::Lambda::EventInvokeConfig",
+                      "aws:cdk:cloudformation:props": {
+                        "functionName": {
+                          "Ref": "lambda8B5974B5"
+                        },
+                        "qualifier": "$LATEST",
+                        "destinationConfig": {
+                          "onFailure": {
+                            "destination": {
+                              "Fn::GetAtt": [
+                                "lambdaonfailuredestinationE2A1BD14",
+                                "Arn"
+                              ]
+                            }
+                          },
+                          "onSuccess": {
+                            "destination": {
+                              "Fn::GetAtt": [
+                                "lambdaonsuccessdestination8ACC02E2",
+                                "Arn"
+                              ]
+                            }
+                          }
+                        },
+                        "maximumRetryAttempts": 2
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_lambda.CfnEventInvokeConfig",
+                      "version": "2.8.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.EventInvokeConfig",
+                  "version": "2.8.0"
+                }
+              },
+              "AllowInvoke:LambdaDestinationDlqStacktopicE229C73C": {
+                "id": "AllowInvoke:LambdaDestinationDlqStacktopicE229C73C",
+                "path": "LambdaDestinationDlqStack/lambda/AllowInvoke:LambdaDestinationDlqStacktopicE229C73C",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+                  "aws:cdk:cloudformation:props": {
+                    "action": "lambda:InvokeFunction",
+                    "functionName": {
+                      "Fn::GetAtt": [
+                        "lambda8B5974B5",
+                        "Arn"
+                      ]
+                    },
+                    "principal": "sns.amazonaws.com",
+                    "sourceArn": {
+                      "Ref": "topic69831491"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+                  "version": "2.8.0"
+                }
+              },
+              "topic": {
+                "id": "topic",
+                "path": "LambdaDestinationDlqStack/lambda/topic",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "LambdaDestinationDlqStack/lambda/topic/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::SNS::Subscription",
+                      "aws:cdk:cloudformation:props": {
+                        "protocol": "lambda",
+                        "topicArn": {
+                          "Ref": "topic69831491"
+                        },
+                        "endpoint": {
+                          "Fn::GetAtt": [
+                            "lambda8B5974B5",
+                            "Arn"
+                          ]
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_sns.CfnSubscription",
+                      "version": "2.8.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_sns.Subscription",
+                  "version": "2.8.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_lambda.Function",
+              "version": "2.8.0"
+            }
+          },
+          "CDKMetadata": {
+            "id": "CDKMetadata",
+            "path": "LambdaDestinationDlqStack/CDKMetadata",
+            "children": {
+              "Default": {
+                "id": "Default",
+                "path": "LambdaDestinationDlqStack/CDKMetadata/Default",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnResource",
+                  "version": "2.8.0"
+                }
+              },
+              "Condition": {
+                "id": "Condition",
+                "path": "LambdaDestinationDlqStack/CDKMetadata/Condition",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnCondition",
+                  "version": "2.8.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "constructs.Construct",
+              "version": "10.0.52"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.8.0"
+        }
+      }
+    },
+    "constructInfo": {
+      "fqn": "aws-cdk-lib.App",
+      "version": "2.8.0"
+    }
+  }
+}
