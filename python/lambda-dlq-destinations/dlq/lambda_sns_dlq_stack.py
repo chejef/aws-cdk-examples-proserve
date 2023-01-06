@@ -19,14 +19,21 @@ class LambdaSnsDlqStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # create SNS topic for aggregate data notification.
-        topic = sns.Topic(self, "topic", display_name="topic", topic_name="lambda_topic")
+        topic = sns.Topic(
+            self, "topic",
+            display_name="topic",
+            topic_name="lambda_topic")
 
         # create lambda function.
-        function = _lambda.Function(scope, "lambda", function_name="dlq_lambda", runtime=_lambda.Runtime.PYTHON_3_9,
-                                    handler="lambda.handler", code=_lambda.Code.from_asset(path="dlq/function"),
-                                    dead_letter_queue_enabled=True,
-                                    retry_attempts=core_lambda.lambda_retry_attempt,
-                                    timeout=core_lambda.lambda_timeout, **kwargs)
+        function = _lambda.Function(
+            self, "lambda",
+            function_name="dlq_lambda",
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            handler="lambda.handler",
+            code=_lambda.Code.from_asset(path="dlq/function"),
+            dead_letter_queue_enabled=True,
+            retry_attempts=core_lambda.lambda_retry_attempt,
+            timeout=core_lambda.lambda_timeout, **kwargs)
 
         # associate lambda with sns as event source.
         core_lambda.add_sns_event_source(self, function, topic)

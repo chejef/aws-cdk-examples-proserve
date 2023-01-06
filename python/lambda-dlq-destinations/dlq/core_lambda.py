@@ -19,7 +19,8 @@ lambda_retry_attempt = 2
 sqs_max_receives = 3
 
 
-def add_sns_event_source(scope: Construct, function: _lambda.Function, topic: sns.Topic):
+def add_sns_event_source(scope: Construct, function: _lambda.Function,
+                         topic: sns.Topic):
     """
     Add SNS topic as Lambda event source.
 
@@ -28,7 +29,10 @@ def add_sns_event_source(scope: Construct, function: _lambda.Function, topic: sn
         function: Lambda function to add event source to.
         topic: SNS topic as the Lambda event source.
     """
-    sns_source = events.SnsEventSource(topic)
+    sns_dead_letter_queue = sqs.Queue(scope, "snsDeadLetterQueue")
+    sns_source = events.SnsEventSource(
+        topic,
+        dead_letter_queue=sns_dead_letter_queue)
     function.add_event_source(sns_source)
 
 

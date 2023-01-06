@@ -12,14 +12,15 @@ app = cdk.App()
 
 # Stack to build Lambda function that is invoked synchronously with SQS as event source
 # and DLQ associated to SQS queue.
-LambdaSQSDlqStack(app, "SQSDlqStack")
+# LambdaSQSDlqStack(app, "SQSDlqStack")
 
 # Stack to build Lambda function that is invoked asynchronously with SNS as event source
 # and DLQ associated to Lambda function.
+#
 # LambdaSnsDlqStack(app, "LambdaDlqStack")
 
 # Stack to build Lambda function that is invoked asynchronously with SNS as event source
 # and Destinations as well DLQ associated to Lambda function.
-# LambdaSnsDlqDestinationStack(app, "LambdaDestinationDlqStack")
+LambdaSnsDlqDestinationStack(app, "LambdaDestinationDlqStack")
 
 app.synth()
